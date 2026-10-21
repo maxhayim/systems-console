@@ -1,0 +1,49 @@
+name: Systems Console
+description: Turn your tech stack into an animated aircraft overhead-panel SVG for your profile README.
+author: maxhayim
+branding:
+  icon: toggle-right
+  color: green
+
+inputs:
+  github_user_name:
+    description: GitHub user whose language stats light up the console.
+    required: true
+  systems:
+    description: |
+      One panel per line: "TITLE: slug, slug, ..." using Simple Icons slugs (https://simpleicons.org).
+      Rename a system with slug=Label. A panel whose title contains "lang" shows repo counts and puts unused languages on standby.
+    required: false
+    default: |
+      Platforms: github, linux
+      Languages: javascript, python
+      Infra / Deployment: docker, git
+  outputs:
+    description: |
+      One output file per line. Add ?titles=false to hide the titles for that file.
+      Example: dist/systems-console.svg?titles=false
+    required: false
+    default: dist/systems-console.svg
+  titles:
+    description: Set to false to hide the header (title, callsign and name) and the panel titles, for outputs that don't set ?titles=.
+    required: false
+    default: "true"
+  github_token:
+    description: Token used to read language stats from the GitHub API.
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+    - shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        SYSTEMS_CONSOLE_TITLES: ${{ inputs.titles }}
+        SC_USER: ${{ inputs.github_user_name }}
+        SC_SYSTEMS: ${{ inputs.systems }}
+        SC_OUTPUTS: ${{ inputs.outputs }}
+      run: node "${{ github.action_path }}/src/cli.mjs" "$SC_USER" "$SC_SYSTEMS" "$SC_OUTPUTS"
